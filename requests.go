@@ -10,15 +10,16 @@ import (
 )
 
 func (c *Client) req(method, path string, body io.Reader, intercept func(*http.Request)) (req *http.Response, err error) {
-	// Tee the body, because if authorization fails we will need to read from it again.
+	// Dont Tee the body, even though if authorization fails we will need to read from it again.
 	var r *http.Request
 	var ba bytes.Buffer
-	bb := io.TeeReader(body, &ba)
+	//bb := io.TeeReader(body, &ba)
+	fmt.Println("tre-reader removed")
 
 	if body == nil {
 		r, err = http.NewRequest(method, PathEscape(Join(c.root, path)), nil)
 	} else {
-		r, err = http.NewRequest(method, PathEscape(Join(c.root, path)), bb)
+		r, err = http.NewRequest(method, PathEscape(Join(c.root, path)), body)
 	}
 
 	if err != nil {
@@ -65,7 +66,6 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 	} else if rs.StatusCode == 401 {
 		return rs, newPathError("Authorize", c.root, rs.StatusCode)
 	}
-
 	return rs, err
 }
 
